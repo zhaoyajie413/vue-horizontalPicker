@@ -1,58 +1,89 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="horizontal-picker">
+    <div style="position: relative">
+      <!--{List}}-->
+      <div class="swiper-container">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"  v-for="(item, index) in list" :key="index">  {{item.text}}</div>
+        </div>
+        <div class="swiper-slide-static-active"></div>
+        <!-- Add Pagination -->
+        <div class="swiper-pagination"></div>
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
-</script>
+  import 'swiper/css/swiper.css'
+  import Swiper from  'swiper/js/swiper'
+  import './HorizontalPicker.css'
+  export default {
+    name: "daysSelect",
+    data(){
+      return{
+        productDetailsText:{},
+        nums:[1,2,3,4,5,6,7,8,9,10],
+        activeSlide:0,
+        HPicker:null,
+        inClick: false,
+      }
+    },
+    props:['list', 'value'],
+    mounted(){
+      this.init();
+    },
+    methods:{
+      init(){
+       let _this = this;
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
+        this.HPicker = new Swiper('.swiper-container', {
+          slidesPerGroup:1,
+          observer:true,
+          observeParents:true,
+          centeredSlides : true,
+          slideToClickedSlide: true,
+          watchSlidesProgress : true,
+          speed:300,
+          slidesPerView: 7,
+          spaceBetween: -10,
+          loop : true,
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+          on: {
+            init: function(){
+              this.emit('transitionEnd');//在初始化时触发一次transitionEnd事件，需要先设置transitionEnd
+            },
+            transitionEnd: function(){
+              _this.activeSlide = this.realIndex;
+              _this.setValue();
+              if(_this.HPicker) _this.update(_this.HPicker)
+            },
+          },
+        });
+        if(_this.value){
+          _this.list.forEach((it,i)=>{
+            if(it.value == _this.value){
+              _this.HPicker.slideToLoop(i);
+              return false
+            }
+          })
+        }
+        _this.setValue();
+      },
+      update(swiper){
+        swiper.loopFix();
+        this.$forceUpdate();
+      },
+      setValue(){
+        this.$emit('input', this.list[this.activeSlide].value);
+      },
+    },
+
+  }
+</script>
+>
